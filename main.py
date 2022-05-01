@@ -1,8 +1,10 @@
 from sklearn.metrics import mean_squared_error
 from statsmodels.tsa.arima_model import ARIMA
+from train_data import TrainData
+from model import Model
 
-def ARIMA_model(df, p=1, q=1, d=1):
-    model = ARIMA(df, order=(p, d, q))
-    results_ARIMA = model.fit(disp=-1)
-    rmse = np.sqrt(mean_squared_error(df[1:], results_ARIMA.fittedvalues))
-    return results_ARIMA, rmse
+if __name__ == '__main__':
+    train_data = TrainData("resources/Environment_Temperature_change_E_All_Data_NOFLAG.csv")
+    model = Model(train_data.get_temperatures(), train_data.get_dates())
+    predictions, confidences = model.predict_test_set()
+    model.plot_predictions(predictions, confidences)

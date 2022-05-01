@@ -6,7 +6,29 @@ import pandas as pd
 import pmdarima as pm
 import pickle
 
-file = open("resources/Environment_Temperature_change_E_All_Data_NOFLAG.csv", encoding = "ISO-8859-1")
+
+def plot_month_temp():
+    # plot data for each month
+    for i in range(len(afghanistan)):
+        plt.plot(years, afghanistan[i], marker='o')
+        plt.title("Afghanistan - temperature change for month " + month_names[i])
+        plt.yticks([])
+        plt.show()
+
+    # average data to have one value for each month
+    avg_month = np.average(list(afghanistan), axis=1)
+    plt.plot(month_idx, avg_month, marker='o')
+    plt.title("Average temperature change for months")
+    plt.xticks(month_idx)
+    plt.show()
+
+    avg = np.average(list(afghanistan), axis=0)
+    plt.plot(years, avg, marker='o')
+    plt.title("Average temperature change for years")
+    plt.show()
+
+
+file = open("resources/Environment_Temperature_change_E_All_Data_NOFLAG.csv", encoding="ISO-8859-1")
 
 csvreader = csv.reader(file)
 header = []
@@ -36,30 +58,29 @@ for j in range(len(antartica[0])):
         year = 1961 + j
         month = i + 1
         temperatures.append(antartica[i][j])
-        # print(month, year, antartica[i][j])
+        print(month, year, antartica[i][j])
         dates.append(datetime.datetime(year, month, 1))
-
 
 series = pd.DataFrame(temperatures)
 series.index = dates
 
-train = series[:-int(len(series)/10)]
-test = series[-int(len(series)/10):]
+train = series[:-int(len(series) / 10)]
+test = series[-int(len(series) / 10):]
 # print(series)
 # print(train)
 # print(test)
 #
 model = pm.auto_arima(train.values,
-                      start_p=1, # lag order starting value
-                      start_q=1, # moving average order starting value
-                      test='adf', #ADF test to decide the differencing order
-                      max_p=3, # maximum lag order
-                      max_q=3, # maximum moving average order
-                      m=12, # seasonal frequency
-                      d=None, # None so that the algorithm can chose the differencing order depending on the test
+                      start_p=1,  # lag order starting value
+                      start_q=1,  # moving average order starting value
+                      test='adf',  # ADF test to decide the differencing order
+                      max_p=3,  # maximum lag order
+                      max_q=3,  # maximum moving average order
+                      m=12,  # seasonal frequency
+                      d=None,  # None so that the algorithm can chose the differencing order depending on the test
                       seasonal=True,
                       start_P=0,
-                      D=1, # enforcing the seasonal frequencing with a positive seasonal difference value
+                      D=1,  # enforcing the seasonal frequencing with a positive seasonal difference value
                       trace=True,
                       suppress_warnings=True,
                       stepwise=True)
@@ -77,7 +98,7 @@ plt.plot(series)
 plt.plot(all_vals, color='darkgreen')
 plt.title('Forecast values for the entire series')
 plt.xlabel('Year')
-plt.ylabel('Temp (Celcius)')
+plt.ylabel('Temp (Celsius)')
 plt.legend(['True', 'Predicted'])
 plt.show()
 
@@ -98,27 +119,6 @@ plt.fill_between(lower_bounds.index,
 
 plt.title("Forecast for test values")
 plt.xlabel('Year')
-plt.ylabel('Temp (Celcius)')
+plt.ylabel('Temp (Celsius)')
 plt.legend(['True', 'Predicted'])
 plt.show()
-
-
-# plot data for each month
-# for i in range(len(afghanistan)):
-#     plt.plot(years, afghanistan[i], marker='o')
-#     plt.title("Afghanistan - temperature change for month " + month_names[i])
-#     plt.yticks([])
-#     plt.show()
-
-# # average data to have one value for each month
-# avg_month = np.average(list(afghanistan), axis=1)
-# plt.plot(month_idx, avg_month, marker='o')
-# plt.title("Average temperature change for months")
-# plt.xticks(month_idx)
-# plt.show()
-#
-# avg = np.average(list(afghanistan), axis=0)
-# plt.plot(years, avg, marker='o')
-# plt.title("Average temperature change for years")
-# plt.show()
-
