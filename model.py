@@ -1,3 +1,5 @@
+import datetime
+
 import pmdarima as pm
 import pandas as pd
 import pickle
@@ -65,8 +67,15 @@ class Model:
         return predictions, conf_vals
 
     def predict_year(self, year):
-        predictions = self.__model.predict(n_periods=year, return_conf_int=False)
-        predictions = pd.Series(predictions, index=self.__test.index)
+        length = year - 2019
+        dates = []
+        for j in range(length):
+            for i in range(12):
+                year = 2019 + j
+                month = i + 1
+                dates.append(datetime.datetime(year, month, 1))
+        predictions = self.__model.predict(n_periods=len(dates), return_conf_int=False)
+        predictions = pd.Series(predictions, index=dates)
         return predictions
 
     def plot_predictions(self, predictions, conf_vals):
