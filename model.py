@@ -64,6 +64,11 @@ class Model:
 
         return predictions, conf_vals
 
+    def predict_year(self, year):
+        predictions = self.__model.predict(n_periods=year, return_conf_int=False)
+        predictions = pd.Series(predictions, index=self.__test.index)
+        return predictions
+
     def plot_predictions(self, predictions, conf_vals):
         lower_bounds = pd.Series(conf_vals[:, 0], index=list(self.__test.index))
         upper_bounds = pd.Series(conf_vals[:, 1], index=list(self.__test.index))

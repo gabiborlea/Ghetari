@@ -8,3 +8,5 @@ if __name__ == '__main__':
     model = Model(train_data.get_temperatures(), train_data.get_dates())
     predictions, confidences = model.predict_test_set()
     model.plot_predictions(predictions, confidences)
+    predictions = model.predict_year(2022)
+    model.plot_predictions(predictions, confidences)
