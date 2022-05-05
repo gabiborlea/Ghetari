@@ -1,9 +1,11 @@
 import datetime
-
+from math import sqrt
 import pmdarima as pm
+import pmdarima.metrics as m
 import pandas as pd
 import pickle
 import matplotlib.pyplot as plt
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 
 class Model:
@@ -60,25 +62,39 @@ class Model:
         plt.show()
 
     def predict_test_set(self):
-        # predictions for the test set with confidence values
+        """
+        Predict the test set with confidence values
+        :return: predictions, confidence intervals
+        """
         predictions, conf_vals = self.__model.predict(n_periods=len(self.__test), return_conf_int=True)
         predictions = pd.Series(predictions, index=self.__test.index)
 
         return predictions, conf_vals
 
-    def predict_year(self, year):
-        length = year - 2019
+    def predict_until_year(self, year):
+        """
+        Predict from 2019 until the given year
+        :param year: max year to predict
+        :return: predictions for the given interval
+        """
+        length = year - 2019 + 1
         dates = []
-        for j in range(length):
-            for i in range(12):
+        for j in range(1, length):
+            for i in range(1, 13):
                 year = 2019 + j
-                month = i + 1
+                month = i
                 dates.append(datetime.datetime(year, month, 1))
         predictions = self.__model.predict(n_periods=len(dates), return_conf_int=False)
         predictions = pd.Series(predictions, index=dates)
+
         return predictions
 
-    def plot_predictions(self, predictions, conf_vals):
+    def plot_dataset_and_predictions(self, predictions, conf_vals):
+        """
+        Plot both the dataset values (train and test) and the predictions for the test values also with confidence intervals.
+        :param predictions: prediction values for the test dataset
+        :param conf_vals: confidence intervals for the test dataset
+        """
         lower_bounds = pd.Series(conf_vals[:, 0], index=list(self.__test.index))
         upper_bounds = pd.Series(conf_vals[:, 1], index=list(self.__test.index))
         plt.plot(self.__series)
@@ -88,8 +104,82 @@ class Model:
                          upper_bounds,
                          color='k', alpha=.15)
 
-        plt.title("Forecast for test values")
+        plt.title("Dataset and predictions")
         plt.xlabel('Year')
         plt.ylabel('Temp (Celsius)')
         plt.legend(['True', 'Predicted'])
         plt.show()
+
+    def plot_test_dataset(self, predictions):
+        """
+        Plot the predictions for the test values and the actual test values.
+        :param predictions: prediction values for the test dataset
+        """
+        plt.plot(self.__test)
+        plt.plot(predictions, color='darkgreen')
+        plt.title("Test dataset (actual and predicted)")
+        plt.xlabel('Year')
+        plt.ylabel('Temp (Celsius)')
+        plt.legend(['True', 'Predicted'])
+        plt.show()
+
+    def get_test_values(self):
+        return self.__test
+
+    @staticmethod
+    def plot_predictions(predictions):
+        """
+        Plot given predictions
+        :param predictions: prediction values
+        """
+        plt.plot(predictions, color='darkgreen')
+        plt.title("Forecast for given years")
+        plt.xticks(rotation=30)
+        plt.xlabel('Year')
+        plt.ylabel('Temp (Celsius)')
+        plt.legend(['Predicted'])
+        plt.grid()
+        plt.show()
+
+    @staticmethod
+    def compute_SMAPE(actual, predicted):
+        """
+        Compute Symmetric Mean Absolute Percentage Error.
+        A perfect SMAPE score is 0.0, and a higher score indicates a higher error rate.
+        :param actual: actual values
+        :param predicted: predicted values
+        :return: error
+        """
+        return m.smape(actual, predicted)
+
+    @staticmethod
+    def compute_RMSE(actual, predicted):
+        """
+        Compute root mean squared error. The best value is 0.0.
+        :param actual: actual values
+        :param predicted: predicted values
+        :return: error
+        """
+        return mean_squared_error(actual, predicted, squared=False)
+
+    @staticmethod
+    def compute_MSE(actual, predicted):
+        """
+        Compute mean squared error. The best value is 0.0.
+        :param actual: actual values
+        :param predicted: predicted values
+        :return: error
+        """
+        return mean_squared_error(actual, predicted)
+
+    @staticmethod
+    def compute_MAE(actual, predicted):
+        """
+        Compute mean absolute error. The best value is 0.0.
+        :param actual: actual values
+        :param predicted: predicted values
+        :return: error
+        """
+        return mean_absolute_error(actual, predicted)
+
+
